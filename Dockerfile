@@ -5,3 +5,7 @@ HEALTHCHECK --interval=3s --retries=3 --timeout=11s CMD /bin/grpc_health_probe -
 FROM ghcr.io/deephaven/web:edge AS ts-web
 COPY data/notebooks /data/notebooks
 RUN chown www-data:www-data /data/notebooks
+
+from python:3.8 AS twitter-sent
+COPY requirements.txt /requirements.txt
+RUN pip install -r /requirements.txt

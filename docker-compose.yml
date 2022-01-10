@@ -36,6 +36,9 @@ services:
     ports:
       - "${PORT:-10000}:10000"
 
+  twitter-sent:
+    image: twitter-sentiment/twitter-sent:latest
+
 volumes:
     web-tmp:
     api-cache:
