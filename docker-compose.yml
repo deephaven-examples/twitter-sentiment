@@ -1,0 +1,41 @@
+version: "3.4"
+
+services:
+  server:
+    image: twitter-sentiment/ts-server
+    environment:
+      JAVA_TOOL_OPTIONS: -Xmx6g -Ddeephaven.console.type=python -Ddeephaven.application.dir=/data/app.d
+    expose:
+      - '8080'
+    volumes:
+      - ./data:/data
+      - ./data/notebooks:/data/notebooks
+      - api-cache:/cache
+
+  web:
+    image: twitter-sentiment/ts-web
+    environment:
+      JAVA_TOOL_OPTIONS: -Xmx4g
+    expose:
+      - '80'
+    volumes:
+      - ./data:/data
+      - ./data/layouts:/data/layouts
+      - ./data/notebooks:/data/notebooks
+      - web-tmp:/tmp
+
+  grpc-proxy:
+    image: ghcr.io/deephaven/grpc-proxy:${VERSION:-edge}
+    environment:
+      - BACKEND_ADDR=server:8080
+    expose:
+      - '8080'
+
+  envoy:
+    image: ghcr.io/deephaven/envoy:${VERSION:-edge}
+    ports:
+      - "${PORT:-10000}:10000"
+
+volumes:
+    web-tmp:
+    api-cache:
