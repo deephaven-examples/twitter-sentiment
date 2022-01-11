@@ -19,7 +19,7 @@ max_results = 10
 time_bins = 10
 
 # How many days to go back. Max 7 for non-acemdic searches
-time_history = 7 
+time_history = 7
 
 
 def create_headers(bearer_token):
@@ -57,7 +57,7 @@ def get_query_params(start_time, end_time):
                     'tweet.fields': 'id,text,author_id,in_reply_to_user_id,geo,conversation_id,created_at,lang,public_metrics,referenced_tweets,reply_settings,source',
                     'user.fields': 'id,name,username,created_at,description,public_metrics,verified',
     #                 'place.fields': 'full_name,id,country,country_code,geo,name,place_type',
-                    'next_token': {}}           
+                    'next_token': {}}
 
 
 def cleanText(text):
@@ -81,25 +81,18 @@ def thread_func():
         query_params = get_query_params(start_time, end_time)
         all_text = get_tweets(query_params)
         for t in all_text:
-            id = float(t['id']) 
+            id = float(t['id'])
             combined = analyze_line(cleanText(t['text']))
             negative = combined.get('neg')
             neutral = combined.get('neu')
             compound = combined.get('compound')
-            positive = combined.get('pos')  
+            positive = combined.get('pos')
             dateTime = t['created_at'][:-1]+" NY"
             retweet_count = t['public_metrics']['retweet_count']
             reply_count = t['public_metrics']['reply_count']
             like_count = t['public_metrics']['like_count']
             quote_count= t['public_metrics']['quote_count']
-            tableWriter_sia.logRow(t['text'], float(compound), float(negative), float(neutral), float(positive), float(id),dateTime, int(retweet_count), int(reply_count), int(like_count), int(quote_count))
-
-
-tableWriter_sia = DynamicTableWriter(   
-    ["Text", "Compound", "Negative", "Neutral", "Positive", "ID", "DateTime", "Retweet_count", "Reply_count", "Like_count", "Quote_count"],
-    [dht.string, dht.double, dht.double, dht.double, dht.double, dht.double, dht.datetime, dht.int_, dht.int_, dht.int_, dht.int_])
-sia_data = tableWriter_sia.getTable()
+            tableWriter_sia.logRow(t['text'], float(compound), float(negative), float(neutral), float(positive), float(id),convertDateTime(dateTime), int(retweet_count), int(reply_count), int(like_count), int(quote_count))
 
 thread_sia = threading.Thread(target = thread_func)
 thread_sia.start()
-
