@@ -12,9 +12,11 @@ agg_list = as_list([
     agg.AggWAvg("Retweet_count","Weight_compound = Compound")
 ])
 
-from deephaven.DateTimeUtils import expressionToNanos, convertDateTime, upperBin
+from deephaven.DateTimeUtils import upperBin, expressionToNanos
 
-table = sia_datav3.update("Timestamp=convertDateTime(DateTime)", "Time_bin = upperBin(Timestamp, 10000)").sort("Timestamp")
+nanosBin = expressionToNanos("T10M")
+
+table = sia_data.update("Time_bin = upperBin(DateTime,nanosBin)")
 combined_tweets = table.aggBy(agg_list,"Time_bin").sort("Time_bin")
 
 
@@ -32,8 +34,3 @@ sia_weighted_averages = Plot.plot("Weight_Neg", combined_tweets, "Time_bin", "We
     .plot("Weight_Pos", combined_tweets, "Time_bin", "Weight_positive")\
     .lineColor(Plot.colorRGB(0,255,0,100))\
     .twinX()\
-
-coins_ohlc = Plot.ohlcPlot("coins", coin_data.where("Close >10"), "DateTime", "Open", "High", "Low", "Close")\
-    .show()
-
-
