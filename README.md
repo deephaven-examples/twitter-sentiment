@@ -16,7 +16,7 @@ This repository integrates [Deephaven](http://deephaven.io/) with [Twitter](http
 * `data/notebooks/graphing.py` - A Deephaven sample query to aggregate and graph twitter sentiment information.
 * `data/notebooks/learn-twitter.py` - A Deephaven sample query to run AI on the data.
 * `data/notebooks/twitter.py` - A Deephaven sample query to pull Tweets.
-* `dxfeed/requirements.txt` - Python dependencies for the application.
+* `requirements.txt` - Python dependencies for the application.
 
 
 ### High level overview
