@@ -2,6 +2,8 @@ def installations():
     import os
     os.system("pip install finnhub-python")
     os.system("pip install nltk")
+    os.system("pip install requests")
+    os.system("pip install requests_oauthlib")
 
     import nltk
     nltk.download('punkt')
@@ -9,7 +11,6 @@ def installations():
 
 
 installations()
-
 
 bearer_token = '<INPUT YOUR TOKEN HERE>'
 
