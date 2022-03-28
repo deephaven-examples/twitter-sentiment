@@ -1,7 +1,12 @@
 def installations():
+    import os
+    os.system("pip install finnhub-python")
+    os.system("pip install nltk")
+
     import nltk
     nltk.download('punkt')
     nltk.download('vader_lexicon')
+
 
 installations()
 
