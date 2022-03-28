@@ -12,6 +12,7 @@ def pull_coins():
     return list(filter(r.match, ids))[12:]
 
 ids = pull_coins()
+#print(ids)
 
 def thread_func():
     for id in ids:
