@@ -1,26 +1,35 @@
-from requests_oauthlib import OAuth1Session
-import requests
-from datetime import datetime
-
+import finnhub
 import time
 import re
 import json
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import nltk
+from nltk.sentiment import SentimentIntensityAnalyzer
+from nltk import word_tokenize,sent_tokenize
+from requests_oauthlib import OAuth1Session
+import requests
+from datetime import datetime
+import textwrap
+import threading
+import pandas as pd
 
-from deephaven.DateTimeUtils import convertDateTime, minus, convertPeriod, currentTime
+from deephaven.DateTimeUtils import isAfter, convertDateTime, minus, convertPeriod, currentTime, plus, millis, secondsToTime
 from deephaven import DynamicTableWriter
 import deephaven.Types as dht
-import threading
+from deephaven.TableTools import newTable, stringCol
+from deephaven import Aggregation as agg, as_list
+from deephaven.conversion_utils import NULL_INT
+from deephaven.DateTimeUtils import upperBin, expressionToNanos
+from deephaven import Plot
 
-# Max results per time bin
-max_results = 10
+
+# Max results per time bin, 10-100
+max_results = 100
 
 # Time intervals to split data
-time_bins = 10
+time_bins = 160
 
 # How many days to go back. Max 7 for non-acemdic searches
 time_history = 7
-
 
 def create_headers(bearer_token):
         headers = {
@@ -36,12 +45,18 @@ def connect_to_endpoint(url, headers, params):
         raise Exception(response.status_code, response.text)
     return response.json()
 
+# get tweets, if not enough data return null
 def get_tweets(query_params):
     headers = create_headers(bearer_token)
     json_response = connect_to_endpoint(search_url, headers, query_params)
-    return(json_response['data'])
-
-
+    try:
+        if(len(json_response['data']))>2:
+            return(json_response['data'])
+        else: return " "
+    except KeyError:
+            print("KeyError in data")
+    return " "
+    
 def analyze_line(text):
     sid = SentimentIntensityAnalyzer()
     tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
@@ -52,11 +67,8 @@ def get_query_params(start_time, end_time):
                     'start_time': start_time,
                     'end_time': end_time,#'2021-12-18T00:00:00.000Z',
                     'max_results': max_results,
-    #                'since_id': max_id,
-    #                 'expansions': 'author_id,in_reply_to_user_id,geo.place_id',
                     'tweet.fields': 'id,text,author_id,in_reply_to_user_id,geo,conversation_id,created_at,lang,public_metrics,referenced_tweets,reply_settings,source',
                     'user.fields': 'id,name,username,created_at,description,public_metrics,verified',
-    #                 'place.fields': 'full_name,id,country,country_code,geo,name,place_type',
                     'next_token': {}}
 
 
@@ -72,7 +84,6 @@ def cleanText(text):
     #replace 20xx with 2000
     text = re.sub("20[0-2][0-9]", "2000", text)
     return text
-
 
 def thread_func():
     for i in range(1, time_bins):
@@ -92,7 +103,12 @@ def thread_func():
             reply_count = t['public_metrics']['reply_count']
             like_count = t['public_metrics']['like_count']
             quote_count= t['public_metrics']['quote_count']
-            tableWriter_sia.logRow(t['text'], float(compound), float(negative), float(neutral), float(positive), float(id),convertDateTime(dateTime), int(retweet_count), int(reply_count), int(like_count), int(quote_count))
+            tableWriter_sia.logRowPermissive(t['text'], float(compound), float(negative), float(neutral), float(positive), float(id),convertDateTime(dateTime), int(retweet_count), int(reply_count), int(like_count), int(quote_count))
+
+tableWriter_sia = DynamicTableWriter(
+    ["Text", "Compound", "Negative", "Neutral", "Positive", "ID", "DateTime", "Retweet_count", "Reply_count", "Like_count", "Quote_count"],
+    [dht.string, dht.double, dht.double, dht.double, dht.double, dht.double, dht.datetime, dht.int_, dht.int_, dht.int_, dht.int_])
+sia_data = tableWriter_sia.getTable()
 
 thread_sia = threading.Thread(target = thread_func)
 thread_sia.start()
