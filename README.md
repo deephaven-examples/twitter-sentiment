@@ -11,12 +11,12 @@ This repository integrates [Deephaven](http://deephaven.io/) with [Twitter](http
 * `Dockerfile` - The Dockerfile for the application. This extends the default Deephaven images to add dependencies. See our guide, [How to install Python packages](https://deephaven.io/core/docs/how-to-guides/install-python-packages/#add-packages-to-a-custom-docker-image), for more information.
 * `docker-compose.yml` - The Docker Compose file for the application. This is mostly the same as the [Deephaven docker-compose file](https://raw.githubusercontent.com/deephaven/deephaven-core/main/containers/python-examples/docker-compose.yml) with modifications to run (NLTK)](https://www.nltk.org/) with [Twitter V2 API](https://twitter.com/) and custom dependencies.
 * `twitter-sentiment.sh` - A simple helper script to launch the application.
-* `data/notebooks/keys.py` - A query to install (NLTK)](https://www.nltk.org/) and set tokens keys and search term.  This script needs to be edited for user information.
-* `data/notebooks/finnhub.py` - A Deephaven sample query to pull crypto data from [Finnhub](https://finnhub.io/) based on search term.
-* `data/notebooks/graphing.py` - A Deephaven sample query to aggregate and graph twitter sentiment information.
-* `data/notebooks/learn-twitter.py` - A Deephaven sample query to run AI on the data.
-* `data/notebooks/twitter.py` - A Deephaven sample query to pull Tweets.
-* `requirements.txt` - Python dependencies for the application.
+* `data/notebooks/1-keys.py` - A query to install (NLTK)](https://www.nltk.org/) and set tokens keys and search term.  This script needs to be edited for user information.
+* `data/notebooks/2-twitter.py` - A Deephaven sample query to pull Tweets.
+* `data/notebooks/3-finnhub.py` - A Deephaven sample query to pull crypto data from [Finnhub](https://finnhub.io/) based on search term.
+* `data/notebooks/4-live.py` - A Deephaven sample query to pull live data from twitter and finnhub.
+* `data/notebooks/5-combine.py` - A Deephaven sample query to aggregate all information.
+* `data/notebooks/6-learn.py` - A Deephaven sample query to run AI on the data and plot the data
 
 
 ### High level overview
