@@ -12,32 +12,28 @@ def pull_coins():
     return list(filter(r.match, ids))[12:]
 
 ids = pull_coins()
-#print(ids)
 
-def thread_func():
+def thread_func_coin():
     for id in ids:
         data = finnhub_client.crypto_candles(id, 15, int(millis(minus(currentTime(),convertPeriod("T"+str(int((24*time_history)))+"H")))/1000), int(datetime.timestamp(datetime.now())))
         coin = id
         if data['s'] =='ok' and len(data['s'])>0:
-            c = (data['c'])
-            h = (data['h'])
-            l = (data['l'])
-            o = (data['o'])
-            t = (data['t'])
-            v = (data['v'])
+            c = data['c']
+            h = data['h']
+            l = data['l']
+            o = data['o']
+            t = data['t']
+            v = data['v']
             if c != None:
-                for i in range(len(c)): 
-                    tableWriter.logRowPermissive(coin, float(c[i]), float(h[i]), float(l[i]), float(o[i]), secondsToTime(t[i]), float(v[i]))
+                for i in range(len(c)):
+                    tableWriter_coin.logRowPermissive(coin, float(c[i]), float(h[i]), float(l[i]), float(o[i]), secondsToTime(t[i]), float(v[i]))
 
 
-tableWriter = DynamicTableWriter(
+tableWriter_coin = DynamicTableWriter(
     ["Coin", "Close", "High", "Low", "Open", "DateTime", "Volume"],
-    #[dht.string, dht.string, dht.string, dht.string, dht.string, dht.string, dht.string, dht.string]
-
     [dht.string, dht.float64, dht.float64, dht.float64, dht.float64, dht.datetime, dht.float64]
 )
 
-coin_data = tableWriter.getTable().formatColumns("Close = Decimal(`#,###.##############`)").formatColumns("High = Decimal(`#,###.##############`)").formatColumns("Low = Decimal(`#,###.##############`)").formatColumns("Open = Decimal(`#,###.##############`)")
-
-thread = threading.Thread(target = thread_func)
-thread.start()
+coin_data = tableWriter_coin.getTable()
+thread_coin = threading.Thread(target = thread_func_coin)
+thread_coin.start()

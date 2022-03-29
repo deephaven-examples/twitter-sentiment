@@ -1,5 +1,7 @@
 from deephaven import Aggregation as agg, as_list
 from deephaven.DateTimeUtils import expressionToNanos, convertDateTime, lowerBin, upperBin
+import deephaven.Types as dht
+from deephaven.conversion_utils import NULL_DOUBLE
 
 agg_list_tweets = as_list([
     agg.AggCount("Count_tweet"),
@@ -38,17 +40,17 @@ agg_list_combined = as_list([
     agg.AggAvg("Average_open = Open"),
 ])
 
+nanosBin = expressionToNanos("T1M")
 
+combined_tweets = sia_data.update("Time_bin = (DateTime)lowerBin(DateTime,nanosBin)")\
+                    .aggBy(agg_list_tweets,"Time_bin").where("Weight_negative <100","Weight_negative>-100" )\
 
-nanosBin = expressionToNanos("T10M")
+combined_coins = coin_data.update("Time_bin = (DateTime)upperBin(DateTime,nanosBin)")\
+                    .aggBy(agg_list_coins,"Time_bin")\
 
-agged_tweet_data = sia_data.update("Time_bin = upperBin(DateTime,nanosBin)")
-combined_tweets = agged_tweet_data.aggBy(agg_list_tweets,"Time_bin").sort("Time_bin")
+combined_data = combined_tweets.aj(combined_coins,"Time_bin")\
+                    .sortDescending("Time_bin")
 
-agged_coin_data = coin_data.update("Time_bin = upperBin(DateTime,nanosBin)")
-combined_coins = agged_coin_data.aggBy(agg_list_coins,"Time_bin").sort("Time_bin")
-
-combined_data = combined_tweets.aj(combined_coins,"Time_bin").update("Average_negative=Average_negative*-100", "Weight_compound=Weight_compound*100", "Average_positive =100* Average_positive" )
-
-
-
+live_binned = live_data.update("Time_bin = (DateTime)upperBin(DateTime,nanosBin)")\
+                    .aggBy(agg_list_combined,"Time_bin")\
+                    .sortDescending("Time_bin")
