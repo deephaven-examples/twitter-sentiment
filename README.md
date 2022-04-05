@@ -67,10 +67,10 @@ import re
 import json
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-from deephaven.DateTimeUtils import convertDateTime, minus, convertPeriod, currentTime
+from deephaven.time import to_datetime, now, plus_period, to_period
 from deephaven import DynamicTableWriter
-import deephaven.Types as dht
-import threading
+import deephaven.dtypes as dht
+from threading import Thread
 ```
 
 ### Run the program
@@ -198,8 +198,8 @@ By formatting the data with [Deephaven Types](https://github.com/deephaven/deeph
 ```python
 def thread_func():
     for i in range(1, time_bins):
-        start_time = str(minus(currentTime(),convertPeriod("T"+str(int(i*(24*time_history)/time_bins))+"H")))[:-9]+'Z'
-        end_time = str(minus(currentTime(),convertPeriod("T"+str(int((i-1)*(24*time_history)/time_bins))+"H")))[:-9]+'Z'
+        start_time = str(minus(now(),to_datetime("T"+str(int(i*(24*time_history)/time_bins))+"H")))[:-9]+'Z'
+        end_time = str(minus(now(),to_datetime("T"+str(int((i-1)*(24*time_history)/time_bins))+"H")))[:-9]+'Z'
         query_params = get_query_params(start_time, end_time)
         all_text = get_tweets(query_params)
         for t in all_text:
@@ -214,18 +214,17 @@ def thread_func():
             reply_count = t['public_metrics']['reply_count']
             like_count = t['public_metrics']['like_count']
             quote_count= t['public_metrics']['quote_count']
-            tableWriter_sia.logRow(t['text'], float(compound), float(negative), float(neutral), float(positive), float(id),convertDateTime(dateTime), int(retweet_count), int(reply_count), int(like_count), int(quote_count))
+            tableWriter_sia.write_data(t['text'], float(compound), float(negative), float(neutral), float(positive), float(id),to_datetime(dateTime), int(retweet_count), int(reply_count), int(like_count), int(quote_count))
 ```
 
 3. Finally, I create the `tableWriter_sia` and execute the threading to run the above function. This will create a table `sia_data` that fills with the tweets and their metadata, as well as the sentiment of each tweet.
 
 ```python
 tableWriter_sia = DynamicTableWriter(
-    ["Text", "Compound", "Negative", "Neutral", "Positive", "ID", "DateTime", "Retweet_count", "Reply_count", "Like_count", "Quote_count"],
-    [dht.string, dht.double, dht.double, dht.double, dht.double, dht.double, dht.datetime, dht.int_, dht.int_, dht.int_, dht.int_])
-sia_data = tableWriter_sia.getTable()
+    {"Text":dht.string, "Compound":dht.double, "Negative":dht.double, "Neutral":dht.double, "Positive":dht.double, "ID":dht.double, "DateTime"dht.DateTime, "Retweet_count":dht.int_, "Reply_count":dht.int_, "Like_count":dht.int_, "Quote_count":dht.int_})
+sia_data = tableWriter_sia.table
 
-thread_sia = threading.Thread(target = thread_func)
+thread_sia = Thread(target = thread_func)
 thread_sia.start()
 ```
 
@@ -242,34 +241,36 @@ This code:
 2. Creates the `combined_tweets` table that shows us the overall sentiment each minute for our time bins.
 
 ```python
-from deephaven import Aggregation as agg, as_list
+from deephaven import agg as agg
 
-agg_list = as_list([
-    agg.AggCount("Count"),
-    agg.AggAvg("Average_negative = Negative"),
-    agg.AggAvg("Average_neutral = Neutral"),
-    agg.AggAvg("Average_positive = Positive"),
-    agg.AggAvg("Average_compound = Compound"),
-    agg.AggWAvg("Retweet_count", "Weight_negative = Negative"),
-    agg.AggWAvg("Retweet_count","Weight_neutral = Neutral"),
-    agg.AggWAvg("Retweet_count","Weight_positive = Positive"),
-    agg.AggWAvg("Retweet_count","Weight_compound = Compound")
-])
+agg_list = [
+    agg.count_("Count_tweet"),
+    agg.avg(["Average_negative = Negative"]),
+    agg.avg(["Average_neutral = Neutral"]),
+    agg.avg(["Average_positive = Positive"]),
+    agg.avg(["Average_compound = Compound"]),
+    agg.weighted_avg("Retweet_count", ["Weight_negative = Negative"]),
+    agg.weighted_avg("Retweet_count",["Weight_neutral = Neutral"]),
+    agg.weighted_avg("Retweet_count",["Weight_positive = Positive"]),
+    agg.weighted_avg("Retweet_count",["Weight_compound = Compound"])
+]
 
-from deephaven.DateTimeUtils import expressionToNanos, convertDateTime, upperBin
+from deephaven.time import to_datetime, lower_bin, to_nanos
 
-combined_tweets = sia_data.update("Time_bin = upperBin(DateTime, 10000)").sort("DateTime").aggBy(agg_list,"Time_bin").sort("Time_bin")
+nanosBin = to_nanos("00:01:00")
+
+combined_tweets = sia_data.update(["Time_bin = (DateTime)lower_bin(DateTime,nanosBin)"])\
+                    .agg_by(agg_list, ["Time_bin"]).sort("Time_bin")
 ```
 
 The table's cool, but not as useful as a plot. I use Deephaven's plotting methods to create a nice visualization of my data.
 
 ```python
-from deephaven import Plot
+from deephaven.plot.figure import Figure
+figure = Figure()
 
-sia_averages = Plot.plot("AVG_Neg", combined_tweets, "Time_bin", "Average_negative")\
-    .lineColor(Plot.colorRGB(255,0,0,100))\
-    .plot("AVG_Pos", combined_tweets, "Time_bin", "Average_positive")\
-    .lineColor(Plot.colorRGB(0,255,0,100))\
+sia_averages = figure.plot_xy(series_name ="AVG_Neg Sentiment", t = combined_tweets,  x ="Time_bin", y = "Average_negative")\
+    .plot_xy(series_name =AVG_Pos", t = combined_tweets,  x ="Time_bin",  y = "Average_positive")\
     .show()
 ```
 
@@ -287,4 +288,4 @@ We hope this program inspires you. If you make something of your own or have an 
 - [Kafka introduction](https://deephaven.io/core/docs/conceptual/kafka-in-deephaven/)
 - [How to connect to a Kafka stream](https://deephaven.io/core/docs/how-to-guides/kafka-stream/)
 - [Kafka basic terminology](https://deephaven.io/core/docs/conceptual/kafka-basic-terms/)
-- [consumeToTable](https://deephaven.io/core/docs/reference/data-import-export/Kafka/consumeToTable/)
+- [consume](https://deephaven.io/core/docs/reference/data-import-export/Kafka/consumeToTable/)

@@ -26,14 +26,13 @@ def thread_func_coin():
             v = data['v']
             if c != None:
                 for i in range(len(c)):
-                    tableWriter_coin.logRowPermissive(coin, float(c[i]), float(h[i]), float(l[i]), float(o[i]), secondsToTime(t[i]), float(v[i]))
+                    tableWriter_coin.write_data(coin, float(c[i]), float(h[i]), float(l[i]), float(o[i]), secondsToTime(t[i]), float(v[i]))
 
 
 tableWriter_coin = DynamicTableWriter(
-    ["Coin", "Close", "High", "Low", "Open", "DateTime", "Volume"],
-    [dht.string, dht.float64, dht.float64, dht.float64, dht.float64, dht.datetime, dht.float64]
+    {"Coin":dht.string, "Close":dht.float64, "High":dht.float64, "Low":dht.float64, "Open":dht.float64, "DateTime":dht.DateTime, "Volume":dht.float64}
 )
 
-coin_data = tableWriter_coin.getTable()
-thread_coin = threading.Thread(target = thread_func_coin)
+coin_data = tableWriter_coin.table
+thread_coin = Thread(target = thread_func_coin)
 thread_coin.start()

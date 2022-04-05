@@ -2,7 +2,7 @@ version: "3.4"
 
 services:
   server:
-    image: ghcr.io/deephaven/server:0.9.0
+    image: ghcr.io/deephaven/server:${VERSION:-latest}
     environment:
       JAVA_TOOL_OPTIONS: -Xmx6g -Ddeephaven.console.type=python
     expose:
@@ -22,14 +22,14 @@ services:
       - web-tmp:/tmp
 
   grpc-proxy:
-    image: ghcr.io/deephaven/grpc-proxy:0.9.0
+    image: ghcr.io/deephaven/grpc-proxy:${VERSION:-latest}
     environment:
       - BACKEND_ADDR=server:8080
     expose:
       - '8080'
 
   envoy:
-    image: ghcr.io/deephaven/envoy:0.9.0
+    image: ghcr.io/deephaven/envoy:${VERSION:-latest}
     ports:
       - "${PORT:-10000}:10000"
 

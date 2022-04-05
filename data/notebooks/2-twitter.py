@@ -12,15 +12,13 @@ import textwrap
 import threading
 import pandas as pd
 
-from deephaven.DateTimeUtils import isAfter, convertDateTime, minus, convertPeriod, currentTime, plus, millis, secondsToTime
+from deephaven.time import to_datetime, now, plus_period, to_period
 from deephaven import DynamicTableWriter
-import deephaven.Types as dht
-from deephaven.TableTools import newTable, stringCol
-from deephaven import Aggregation as agg, as_list
-from deephaven.conversion_utils import NULL_INT
-from deephaven.DateTimeUtils import upperBin, expressionToNanos
-from deephaven import Plot
-
+import deephaven.dtypes as dht
+from threading import Thread
+from deephaven import agg as agg
+from deephaven.plot.figure import Figure
+from deephaven.time import to_datetime, lower_bin, to_nanos
 
 # Max results per time bin, 10-100
 max_results = 100
@@ -87,8 +85,8 @@ def cleanText(text):
 
 def thread_func():
     for i in range(1, time_bins):
-        start_time = str(minus(currentTime(),convertPeriod("T"+str(int(i*(24*time_history)/time_bins))+"H")))[:-9]+'Z'
-        end_time = str(minus(currentTime(),convertPeriod("T"+str(int((i-1)*(24*time_history)/time_bins))+"H")))[:-9]+'Z'
+        start_time = str(minus(now(),to_datetime("T"+str(int(i*(24*time_history)/time_bins))+"H")))[:-9]+'Z'
+        end_time = str(minus(now(),to_datetime("T"+str(int((i-1)*(24*time_history)/time_bins))+"H")))[:-9]+'Z'
         query_params = get_query_params(start_time, end_time)
         all_text = get_tweets(query_params)
         for t in all_text:
@@ -103,12 +101,11 @@ def thread_func():
             reply_count = t['public_metrics']['reply_count']
             like_count = t['public_metrics']['like_count']
             quote_count= t['public_metrics']['quote_count']
-            tableWriter_sia.logRowPermissive(t['text'], float(compound), float(negative), float(neutral), float(positive), float(id),convertDateTime(dateTime), int(retweet_count), int(reply_count), int(like_count), int(quote_count))
+            tableWriter_sia.write_data(t['text'], float(compound), float(negative), float(neutral), float(positive), float(id),to_datetime(dateTime), int(retweet_count), int(reply_count), int(like_count), int(quote_count))
 
 tableWriter_sia = DynamicTableWriter(
-    ["Text", "Compound", "Negative", "Neutral", "Positive", "ID", "DateTime", "Retweet_count", "Reply_count", "Like_count", "Quote_count"],
-    [dht.string, dht.double, dht.double, dht.double, dht.double, dht.double, dht.datetime, dht.int_, dht.int_, dht.int_, dht.int_])
-sia_data = tableWriter_sia.getTable()
+    {"Text":dht.string, "Compound":dht.double, "Negative":dht.double, "Neutral":dht.double, "Positive":dht.double, "ID":dht.double, "DateTime"dht.DateTime, "Retweet_count":dht.int_, "Reply_count":dht.int_, "Like_count":dht.int_, "Quote_count":dht.int_})
+sia_data = tableWriter_sia.table
 
-thread_sia = threading.Thread(target = thread_func)
+thread_sia = Thread(target = thread_func)
 thread_sia.start()

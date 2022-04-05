@@ -41,7 +41,7 @@ def write_data(all_text):
                 dateTime_live  = t['created_at'][:-1]+" NY"
                 retweet_count_live    = t['public_metrics']['retweet_count']
                 text_live  = t['text'].split('\n', 1)[0]
-                tableWriter_live.logRow(str(text_live ), float(compound_live ), float(negative_live), float(neutral_live), float(positive_live ),convertDateTime(dateTime_live ), int(retweet_count_live ), float(c_live ), float(h_live ), float(l_live ), float(o_live ), float(v_live ))
+                tableWriter_live.write_data(str(text_live ), float(compound_live ), float(negative_live), float(neutral_live), float(positive_live ),convertDateTime(dateTime_live ), int(retweet_count_live ), float(c_live ), float(h_live ), float(l_live ), float(o_live ), float(v_live ))
                 i = i + 1
             except:
                 print('error/NoneType')
@@ -57,8 +57,7 @@ def thread_func_live():
         time.sleep(time_to_sleep)
 
 tableWriter_live = DynamicTableWriter(
-    ["Text", "Compound", "Negative", "Neutral", "Positive",  "DateTime", "Retweet_count", "Close", "High", "Low", "Open", "Volume"],
-    [dht.string, dht.double, dht.double, dht.double, dht.double, dht.datetime, dht.int_, dht.float64, dht.float64, dht.float64, dht.float64, dht.float64])
-thread_live = threading.Thread(target=thread_func_live)
+    {"Text":dht.string, "Compound":dht.double, "Negative":dht.double, "Neutral":dht.double, "Positive":dht.double,  "DateTime":dht.DateTime, "Retweet_count":dht.int_, "Close":dht.float64, "High":dht.float64, "Low":dht.float64, "Open":dht.float64, "Volume":dht.float64})
+thread_live = Thread(target=thread_func_live)
 thread_live.start()
-live_data = tableWriter_live.getTable()
+live_data = tableWriter_live.table
