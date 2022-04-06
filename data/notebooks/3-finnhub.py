@@ -1,3 +1,5 @@
+from deephaven.time import millis_to_datetime, millis
+
 def pull_coins():
     exchanges = finnhub_client.crypto_exchanges()
     temp_ids = []
@@ -13,9 +15,11 @@ def pull_coins():
 
 ids = pull_coins()
 
+resolution = '1' # Available values: 1, 5, 15, 30, 60, 'D', 'W', 'M'
+
 def thread_func_coin():
     for id in ids:
-        data = finnhub_client.crypto_candles(id, 15, int(millis(minus(currentTime(),convertPeriod("T"+str(int((24*time_history)))+"H")))/1000), int(datetime.timestamp(datetime.now())))
+        data = finnhub_client.crypto_candles(id, resolution, int(millis(minus_period(now(),to_period("T"+str(int((24*time_history)))+"H")))/1000), int(datetime.timestamp(datetime.now())))
         coin = id
         if data['s'] =='ok' and len(data['s'])>0:
             c = data['c']
@@ -26,7 +30,7 @@ def thread_func_coin():
             v = data['v']
             if c != None:
                 for i in range(len(c)):
-                    tableWriter_coin.write_data(coin, float(c[i]), float(h[i]), float(l[i]), float(o[i]), secondsToTime(t[i]), float(v[i]))
+                    tableWriter_coin.write_row(coin, float(c[i]), float(h[i]), float(l[i]), float(o[i]), millis_to_datetime(t[i]*1000), float(v[i]))
 
 
 tableWriter_coin = DynamicTableWriter(

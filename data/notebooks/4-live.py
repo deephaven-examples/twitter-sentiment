@@ -1,11 +1,11 @@
-coin = 'COINBASE:DOGE-USD'
+coin = 'OKEX:DOGE-ETH'
 #seconds between requests
-time_to_sleep = 60
+time_to_sleep = 30
 
 #how long to keep listening in minutes
 time_alive = 20
 
-max_id = 1508803711971344384
+max_id = 1510238364283338752
 resolution = '1' # Available values: 1, 5, 15, 30, 60, 'D', 'W', 'M'
 
 #twitter paramters for live tweets
@@ -17,9 +17,12 @@ def get_query_params_live(search_term, max_id):
                     'user.fields': 'id,name,username,created_at,description,public_metrics,verified',
                     'next_token': {}}
 
+resolution = '1' # Available values: 1, 5, 15, 30, 60, 'D', 'W', 'M'
 
 def write_data(all_text):
-    data = finnhub_client.crypto_candles(coin, resolution, int(millis(minus(currentTime(),convertPeriod("T"+str(int(1))+"M")))/1000), int(millis(currentTime())/1000))
+    print("in write")
+    data = finnhub_client.crypto_candles(id, resolution, int(millis(minus_period(now(),to_period("T"+str(int((24*time_history)))+"H")))/1000), int(datetime.timestamp(datetime.now())))
+    print(data)
     if data['s'] =='ok' and len(data['s'])>0 and  data['c'] != None and  len(data['c'])>0:
         c_live = data['c'][0]
         h_live  = data['h'][0]
@@ -29,10 +32,12 @@ def write_data(all_text):
         global max_id
         i = 0
         for t in all_text:
+            print("here")
             id_live = int(t['id'])
             try:
                 if float(t['id'])!=None and max_id < float(t['id']):
                     globals()['max_id'] = int(t['id'])
+                print("in try")
                 combined_live  = analyze_line(cleanText(t['text']))
                 negative_live  = 100*combined_live.get('neg')
                 neutral_live  = 100*combined_live.get('neu')
@@ -41,7 +46,7 @@ def write_data(all_text):
                 dateTime_live  = t['created_at'][:-1]+" NY"
                 retweet_count_live    = t['public_metrics']['retweet_count']
                 text_live  = t['text'].split('\n', 1)[0]
-                tableWriter_live.write_data(str(text_live ), float(compound_live ), float(negative_live), float(neutral_live), float(positive_live ),convertDateTime(dateTime_live ), int(retweet_count_live ), float(c_live ), float(h_live ), float(l_live ), float(o_live ), float(v_live ))
+                tableWriter_live.write_row(t['text'], float(compound_live), float(negative_live), float(neutral_live), float(positive_live),to_datetime(dateTime_live), int(retweet_count_live), float(c_live), float(h_live), float(l_live), float(o_live), float(v_live))
                 i = i + 1
             except:
                 print('error/NoneType')
