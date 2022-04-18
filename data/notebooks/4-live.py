@@ -20,9 +20,7 @@ def get_query_params_live(search_term, max_id):
 resolution = '1' # Available values: 1, 5, 15, 30, 60, 'D', 'W', 'M'
 
 def write_data(all_text):
-    print("in write")
-    data = finnhub_client.crypto_candles(id, resolution, int(millis(minus_period(now(),to_period("T"+str(int((24*time_history)))+"H")))/1000), int(datetime.timestamp(datetime.now())))
-    print(data)
+    data = finnhub_client.crypto_candles(coin, resolution, int(millis(minus_period(now(),to_period("T"+str(int((24*time_history)))+"H")))/1000), int(datetime.timestamp(datetime.now())))
     if data['s'] =='ok' and len(data['s'])>0 and  data['c'] != None and  len(data['c'])>0:
         c_live = data['c'][0]
         h_live  = data['h'][0]
@@ -32,12 +30,10 @@ def write_data(all_text):
         global max_id
         i = 0
         for t in all_text:
-            print("here")
             id_live = int(t['id'])
             try:
                 if float(t['id'])!=None and max_id < float(t['id']):
                     globals()['max_id'] = int(t['id'])
-                print("in try")
                 combined_live  = analyze_line(cleanText(t['text']))
                 negative_live  = 100*combined_live.get('neg')
                 neutral_live  = 100*combined_live.get('neu')

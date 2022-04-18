@@ -15,15 +15,15 @@ agg_list_tweets = [
     agg.weighted_avg("Retweet_count",["Weight_positive = Positive"]),
     agg.weighted_avg("Retweet_count",["Weight_compound = Compound"])
 ]
-agg_list_coins = as_list([
+agg_list_coins = [
     agg.count_("Count_coin"),
     agg.avg(["Average_close = Close"]),
     agg.avg(["Average_high = High"]),
     agg.avg(["Average_low = Low"]),
     agg.avg(["Average_open = Open"])
-])
+]
 
-agg_list_combined = as_list([
+agg_list_combined = [
     agg.count_("Count_tweet"),
     agg.avg(["Average_negative = Negative"]),
     agg.avg(["Average_neutral = Neutral"]),
@@ -38,7 +38,7 @@ agg_list_combined = as_list([
     agg.avg(["Average_high = High"]),
     agg.avg(["Average_low = Low"]),
     agg.avg(["Average_open = Open"])
-])
+]
 
 nanosBin = to_nanos("00:01:00")
 
