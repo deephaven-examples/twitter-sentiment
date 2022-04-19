@@ -48,7 +48,7 @@ combined_tweets = sia_data.update(["Time_bin = (DateTime)lower_bin(DateTime,nano
 combined_coins = coin_data.update(["Time_bin = (DateTime)upperBin(DateTime,nanosBin)"])\
                     .agg_by(agg_list_coins,["Time_bin"])\
 
-combined_data = combined_tweets.aj(combined_coins,["Time_bin"])\
+combined_data = combined_tweets.join(combined_coins,["Time_bin"])\
                     .sort_descending(["Time_bin"])
 
 live_binned = live_data.update(["Time_bin = (DateTime)upperBin(DateTime,nanosBin)"])\

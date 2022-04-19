@@ -92,19 +92,16 @@ def thread_func():
         for t in all_text:
             id = float(t['id'])
             combined = analyze_line(cleanText(t['text']))
-            negative = combined.get('neg')
-            neutral = combined.get('neu')
-            compound = combined.get('compound')
-            positive = combined.get('pos')
+            negative = 100*combined.get('neg')
+            neutral = 100*combined.get('neu')
+            compound = 100*combined.get('compound')
+            positive = 100*combined.get('pos')
             dateTime = t['created_at'][:-1]+" NY"
             retweet_count = t['public_metrics']['retweet_count']
-            reply_count = t['public_metrics']['reply_count']
-            like_count = t['public_metrics']['like_count']
-            quote_count= t['public_metrics']['quote_count']
-            tableWriter_sia.write_row(t['text'], float(compound), float(negative), float(neutral), float(positive), float(id),to_datetime(dateTime), int(retweet_count), int(reply_count), int(like_count), int(quote_count))
+            tableWriter_sia.write_row(t['text'], float(compound), float(negative), float(neutral), float(positive), float(id),to_datetime(dateTime), int(retweet_count))
 
 tableWriter_sia = DynamicTableWriter(
-    {"Text":dht.string, "Compound":dht.double, "Negative":dht.double, "Neutral":dht.double, "Positive":dht.double, "ID":dht.double, "DateTime":dht.DateTime, "Retweet_count":dht.int_, "Reply_count":dht.int_, "Like_count":dht.int_, "Quote_count":dht.int_})
+    {"Text":dht.string, "Compound":dht.double, "Negative":dht.double, "Neutral":dht.double, "Positive":dht.double, "ID":dht.double, "DateTime":dht.DateTime, "Retweet_count":dht.int_})
 sia_data = tableWriter_sia.table
 
 thread_sia = Thread(target = thread_func)

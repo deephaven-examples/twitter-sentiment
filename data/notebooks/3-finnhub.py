@@ -15,22 +15,22 @@ def pull_coins():
 
 ids = pull_coins()
 
-resolution = '1' # Available values: 1, 5, 15, 30, 60, 'D', 'W', 'M'
+resolution = '5' # Available values: 1, 5, 15, 30, 60, 'D', 'W', 'M'
+
+coin = 'BINANCE:DOGEAUD'
 
 def thread_func_coin():
-    for id in ids:
-        data = finnhub_client.crypto_candles(id, resolution, int(millis(minus_period(now(),to_period("T"+str(int((24*time_history)))+"H")))/1000), int(datetime.timestamp(datetime.now())))
-        coin = id
-        if data['s'] =='ok' and len(data['s'])>0:
-            c = data['c']
-            h = data['h']
-            l = data['l']
-            o = data['o']
-            t = data['t']
-            v = data['v']
-            if c != None:
-                for i in range(len(c)):
-                    tableWriter_coin.write_row(coin, float(c[i]), float(h[i]), float(l[i]), float(o[i]), millis_to_datetime(t[i]*1000), float(v[i]))
+    data = finnhub_client.crypto_candles(coin, resolution, int(millis(minus_period(now(),to_period("T"+str(int((24*time_history)))+"H")))/1000), int(datetime.timestamp(datetime.now())))
+    if data['s'] =='ok' and len(data['s'])>0:
+        c = data['c']
+        h = data['h']
+        l = data['l']
+        o = data['o']
+        t = data['t']
+        v = data['v']
+        if c != None:
+            for i in range(len(c)):
+                tableWriter_coin.write_row(coin, float(c[i]), float(h[i]), float(l[i]), float(o[i]), millis_to_datetime(t[i]*1000), float(v[i]))
 
 
 tableWriter_coin = DynamicTableWriter(
