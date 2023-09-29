@@ -280,7 +280,9 @@ This code provides a basic starter. You can use it to make your own searches, ti
 
 We hope this program inspires you. If you make something of your own or have an idea to share, we'd love to hear about it on [Gitter](https://gitter.im/deephaven/deephaven)!
 
+## Note
 
+This project was built for Deephaven Community Core v0.11.0. No guarantee is made of forwards or backwards compatibility.
 
 ## Related documentation
 
