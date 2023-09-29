@@ -2,7 +2,7 @@ version: "3.4"
 
 services:
   server:
-    image: ghcr.io/deephaven/server:${VERSION:-latest}
+    image: ghcr.io/deephaven/server:${VERSION:-0.11.0}
     environment:
       JAVA_TOOL_OPTIONS: -Xmx6g -Ddeephaven.console.type=python
     expose:
